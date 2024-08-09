@@ -6,7 +6,8 @@ observation, info = env.reset()
 
 for _ in range(1000):
     action = env.action_space.sample()
-    observation, reward, terminated, truncated, info = env.step(action)
+    observation, reward, terminated, truncated, info = env.step([(observation[0] + action[0]) * 512,
+                                                                 (observation[1] + action[1]) * 512])
     image = env.render()
 
     if terminated or truncated:

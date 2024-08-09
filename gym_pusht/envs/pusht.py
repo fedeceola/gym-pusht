@@ -158,7 +158,7 @@ class PushTEnv(gym.Env):
 
         # Initialize spaces
         self._initialize_observation_space()
-        self.action_space = spaces.Box(low=0, high=512, shape=(2,), dtype=np.float32)
+        self.action_space = spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
 
         # Physics
         self.k_p, self.k_v = 100, 20  # PD control.z
@@ -179,6 +179,8 @@ class PushTEnv(gym.Env):
         self._last_action = None
 
         self.success_threshold = 0.95  # 95% coverage
+
+        self.reward_pre_step = None
 
     def _initialize_observation_space(self):
         if self.obs_type == "state":
@@ -254,8 +256,11 @@ class PushTEnv(gym.Env):
 
         # Compute reward
         coverage = self._get_coverage()
-        reward = np.clip(coverage / self.success_threshold, 0.0, 1.0)
+        reward_step = np.clip(coverage / self.success_threshold, 0.0, 1.0)
         terminated = is_success = coverage > self.success_threshold
+
+        reward = reward_step - self.reward_pre_step
+        self.reward_pre_step = reward_step
 
         observation = self.get_obs()
         info = self._get_info()
@@ -292,6 +297,9 @@ class PushTEnv(gym.Env):
 
         if self.render_mode == "human":
             self.render()
+
+        coverage = self._get_coverage()
+        self.reward_pre_step = np.clip(coverage / self.success_threshold, 0.0, 1.0)
 
         return observation, info
 
@@ -382,9 +390,10 @@ class PushTEnv(gym.Env):
 
     def get_obs(self):
         if self.obs_type == "state":
-            agent_position = np.array(self.agent.position)
-            block_position = np.array(self.block.position)
+            agent_position = np.array(self.agent.position) / 512
+            block_position = np.array(self.block.position) / 512
             block_angle = self.block.angle % (2 * np.pi)
+            block_angle /= 2 * np.pi
             return np.concatenate([agent_position, block_position, [block_angle]], dtype=np.float64)
 
         if self.obs_type == "environment_state_agent_pos":
