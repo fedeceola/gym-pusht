@@ -240,6 +240,9 @@ class PushTEnv(gym.Env):
         return intersection_area / goal_area
 
     def step(self, action):
+        agent_position = np.array(self.agent.position) / 512
+        action += agent_position
+        action *= 512
         self.n_contact_points = 0
         n_steps = int(1 / (self.dt * self.control_hz))
         self._last_action = action
