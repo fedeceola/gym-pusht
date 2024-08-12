@@ -7,7 +7,6 @@ observation, info = env.reset()
 for _ in range(1000):
     action = env.action_space.sample()
     observation, reward, terminated, truncated, info = env.step([action[0], action[1]])
-    image = env.render()
 
     if terminated or truncated:
         observation, info = env.reset()

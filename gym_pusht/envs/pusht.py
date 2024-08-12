@@ -270,6 +270,9 @@ class PushTEnv(gym.Env):
         info["is_success"] = is_success
         info["coverage"] = coverage
 
+        if self.render_mode == "human":
+            self.render()
+
         truncated = False
         return observation, reward, terminated, truncated, info
 
