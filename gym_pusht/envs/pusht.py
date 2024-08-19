@@ -191,20 +191,10 @@ class PushTEnv(gym.Env):
                 dtype=np.float64,
             )
         elif self.obs_type == "environment_state_agent_pos":
-            self.observation_space = spaces.Dict(
-                {
-                    "environment_state": spaces.Box(
-                        low=np.zeros(16),
-                        high=np.full((16,), 512),
-                        dtype=np.float64,
-                    ),
-                    "agent_pos": spaces.Box(
-                        low=np.array([0, 0]),
-                        high=np.array([512, 512]),
-                        dtype=np.float64,
-                    ),
-                },
-            )
+            self.observation_space = spaces.Box(low=np.zeros(18),
+                                                high=np.full((18,), 512),
+                                                dtype=np.float64,
+                                                )
         elif self.obs_type == "pixels":
             self.observation_space = spaces.Box(
                 low=0, high=255, shape=(self.observation_height, self.observation_width, 3), dtype=np.uint8
@@ -403,10 +393,9 @@ class PushTEnv(gym.Env):
             return np.concatenate([agent_position, block_position, [block_angle]], dtype=np.float64)
 
         if self.obs_type == "environment_state_agent_pos":
-            return {
-                "environment_state": self.get_keypoints(self._block_shapes).flatten(),
-                "agent_pos": np.array(self.agent.position),
-            }
+            agent_position = np.array(self.agent.position) / 512
+            keypoint_positions = self.get_keypoints(self._block_shapes).flatten() / 512,
+            return np.concatenate([agent_position, np.array(keypoint_positions).squeeze()], dtype=np.float64)
 
         pixels = self._render()
         if self.obs_type == "pixels":
